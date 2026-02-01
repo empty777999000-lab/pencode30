@@ -1,0 +1,87 @@
+/* VISUAL CORE */
+:root {
+    --bg-deep: #010409;
+    --glow-cyan: #00f2ff;
+    --glow-purple: #7000ff;
+}
+
+body {
+    background-color: var(--bg-deep);
+    font-family: 'Inter', sans-serif;
+    color: white;
+}
+
+.font-tech { font-family: 'Rajdhani', sans-serif; }
+
+/* GLASSMORPHISM */
+.glass-panel {
+    background: rgba(10, 15, 30, 0.6);
+    backdrop-filter: blur(50px);
+    -webkit-backdrop-filter: blur(50px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 60px rgba(0,0,0,0.8);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* CUSTOM DROPDOWN STYLING */
+.dropdown-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(90deg, rgba(0, 242, 255, 0.1), transparent);
+    padding-left: 20px;
+}
+
+.dropdown-item img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+.dropdown-item span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.dropdown-item:hover span {
+    color: var(--glow-cyan);
+}
+
+/* PERCENTAGE BUTTONS */
+.perc-btn {
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 10px;
+    font-weight: bold;
+    transition: 0.3s;
+    color: #94a3b8;
+}
+
+.perc-btn:hover {
+    background: rgba(0, 242, 255, 0.1);
+    color: var(--glow-cyan);
+    border-color: var(--glow-cyan);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+}
+
+/* INPUT REMOVALS */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}

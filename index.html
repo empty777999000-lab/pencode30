@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity Vault | Multi-Chain Node</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+
+    <canvas id="neuralCanvas" class="fixed inset-0 z-0"></canvas>
+
+    <main class="relative z-10 w-full max-w-[1400px] glass-panel rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 flex flex-col">
+        
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-400/30">
+                    <i class="fas fa-cube text-cyan-400 text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-tech font-bold text-white tracking-widest">INFINITY <span class="text-cyan-400">VAULT</span></h1>
+                    <p class="text-[10px] text-slate-400 tracking-[0.3em]">MULTI-CHAIN NODE V8.0</p>
+                </div>
+            </div>
+            <button id="connectBtn" class="bg-white/5 border border-white/10 px-6 py-2 rounded-xl text-xs font-bold tracking-widest hover:bg-cyan-500/20 hover:border-cyan-400 transition-all text-white">
+                CONNECT WALLET
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-3 flex flex-col gap-4">
+                <div class="glass-card p-6 rounded-2xl border-l-2 border-cyan-400">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Staked Balance</p>
+                    <h2 class="text-3xl font-tech font-bold text-white mt-1"><span id="stakedBal">0.00</span> <span class="text-sm text-cyan-400 active-symbol">BNB</span></h2>
+                    <p class="text-[10px] text-slate-500 mt-1">≈ $<span id="stakedUsd">0.00</span> USD</p>
+                </div>
+                <div class="glass-card p-6 rounded-2xl border-l-2 border-purple-500">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Live Market Price</p>
+                    <h2 class="text-2xl font-tech font-bold text-white mt-1">$<span id="marketPrice">0.00</span></h2>
+                    <p class="text-[10px] text-green-400 mt-1 flex items-center gap-1"><i class="fas fa-caret-up"></i> 1 <span class="active-symbol">BNB</span></p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6">
+                <div class="glass-card p-8 rounded-[2rem] border border-cyan-500/30 relative">
+                    
+                    <div class="mb-6 relative z-50">
+                        <label class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 block">Select Asset Network</label>
+                        
+                        <div id="dropdownBtn" class="flex items-center justify-between bg-black/40 border border-white/10 p-4 rounded-xl cursor-pointer hover:border-cyan-400/50 transition-all">
+                            <div class="flex items-center gap-3">
+                                <img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=025" class="w-6 h-6" id="selectedIcon">
+                                <span class="font-bold text-white tracking-wider" id="selectedName">BNB (Smart Chain)</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-cyan-400 transition-transform" id="dropArrow"></i>
+                        </div>
+
+                        <div id="dropdownMenu" class="absolute w-full mt-2 bg-[#020617] border border-cyan-500/30 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden hidden transform origin-top transition-all">
+                            </div>
+                    </div>
+
+                    <div class="bg-black/30 rounded-2xl p-6 border border-white/5 mb-6 group focus-within:border-cyan-500/60 transition-all">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-[10px] text-slate-400 uppercase">Amount to Stake</span>
+                            <span class="text-[10px] text-cyan-400 cursor-pointer hover:text-white transition-colors" id="maxBtn">MAX</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <input type="number" id="stakeAmount" class="w-full bg-transparent text-4xl font-tech font-bold text-white outline-none placeholder-slate-700" placeholder="0.00">
+                            <span class="text-xl font-bold text-slate-500 active-symbol">BNB</span>
+                        </div>
+                        <div class="mt-2 text-right">
+                            <p class="text-xs font-mono text-cyan-300 opacity-80">≈ $<span id="liveUsdVal">0.00</span> USD</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-3 mb-8">
+                        <button class="perc-btn" data-p="0.25">25%</button>
+                        <button class="perc-btn" data-p="0.50">50%</button>
+                        <button class="perc-btn" data-p="0.75">75%</button>
+                        <button class="perc-btn" data-p="1.0">MAX</button>
+                    </div>
+
+                    <button id="executeBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-black font-tech text-xl tracking-[0.2em] shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-[1.02] transition-transform">
+                        EXECUTE PROTOCOL
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-3">
+                <div class="glass-card h-full p-8 rounded-[2rem] border border-white/5 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-[10px] text-slate-500 uppercase tracking-[0.3em] mb-6">Global Statistics</h4>
+                        <div class="mb-6">
+                            <p class="text-[9px] text-slate-600 uppercase">Total Value Locked</p>
+                            <p class="text-2xl font-tech font-bold text-white">$620,450,100</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-slate-600 uppercase">24h Payouts</p>
+                            <p class="text-2xl font-tech font-bold text-cyan-400">$115,000,000</p>
+                        </div>
+                    </div>
+                    <div id="ledger" class="h-32 overflow-hidden flex flex-col-reverse text-[9px] font-mono opacity-60"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
