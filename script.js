@@ -1,173 +1,104 @@
 /**
- * INFINITY VAULT ENGINE V8.0
- * Features: Live Price Fetching, Custom UI Dropdown, Real-time Calculation
+ * INFINITY VAULT CORE ENGINE
+ * Contract: 0x368E6e2eb54D0c4F0bdC79381343A92BE3A193dE
  */
 
-// --- CONFIGURATION ---
-const ASSETS = [
-    { id: 'binancecoin', symbol: 'BNB', name: 'BNB (Smart Chain)', icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.png?v=025' },
-    { id: 'tether', symbol: 'USDT', name: 'USDT (Tether BEP20)', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png?v=025' },
-    { id: 'ethereum', symbol: 'ETH', name: 'ETH (Ethereum)', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png?v=025' },
-    { id: 'solana', symbol: 'SOL', name: 'SOL (Solana)', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png?v=025' },
-    { id: 'tron', symbol: 'TRX', name: 'TRX (Tron Network)', icon: 'https://cryptologos.cc/logos/tron-trx-logo.png?v=025' }
+const CONTRACT_ADDRESS = "0x368E6e2eb54D0c4F0bdC79381343A92BE3A193dE";
+const ABI = [
+    { "inputs": [], "name": "claim", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+    { "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "stake", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+    { "inputs": [], "name": "unstake", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+    { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "users", "outputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }, { "internalType": "uint256", "name": "lastUpdate", "type": "uint256" }, { "internalType": "uint256", "name": "reward", "type": "uint256" }], "stateMutability": "view", "type": "function" }
 ];
 
-let currentAsset = ASSETS[0]; // Default BNB
-let currentPrice = 0; // Will be fetched
-let userBalance = 0; // Mock balance
+let provider, signer, contract;
+let currentAccount = null;
 
-// --- DOM ELEMENTS ---
-const els = {
-    dropBtn: document.getElementById('dropdownBtn'),
-    dropMenu: document.getElementById('dropdownMenu'),
-    selectedIcon: document.getElementById('selectedIcon'),
-    selectedName: document.getElementById('selectedName'),
-    dropArrow: document.getElementById('dropArrow'),
-    stakeInput: document.getElementById('stakeAmount'),
-    liveUsd: document.getElementById('liveUsdVal'),
-    marketPrice: document.getElementById('marketPrice'),
-    activeSymbols: document.querySelectorAll('.active-symbol')
-};
+// --- ১. ওয়ালেট কানেক্ট ফাংশন ---
+async function connectWallet() {
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            // কানেক্টিং স্টেট দেখানো
+            document.getElementById('connectBtn').innerText = "CONNECTING...";
+            
+            // ওয়ালেট রিকোয়েস্ট
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            currentAccount = accounts[0];
+            
+            // ইথারস সেটআপ
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-// --- 1. INITIALIZATION ---
-window.onload = async () => {
-    initParticles(); // Background (defined below)
-    generateDropdown(); // Create custom UI
-    await fetchLivePrices(); // Get real API prices
-    
-    // Simulate a random wallet balance for demo
-    userBalance = (Math.random() * 5).toFixed(4); 
-};
-
-// --- 2. LIVE PRICE ENGINE (CoinGecko API) ---
-async function fetchLivePrices() {
-    try {
-        // Fetching prices for all assets at once
-        const ids = ASSETS.map(a => a.id).join(',');
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
-        const data = await res.json();
-        
-        // Update current asset price
-        currentPrice = data[currentAsset.id].usd;
-        updatePriceDisplay();
-        
-        console.log("Prices Synced:", data);
-    } catch (e) {
-        console.log("API Limit/Error, using fallback prices.");
-        // Fallback if API fails
-        const fallback = { binancecoin: 620, tether: 1, ethereum: 3200, solana: 110, tron: 0.12 };
-        currentPrice = fallback[currentAsset.id];
-        updatePriceDisplay();
-    }
-}
-
-function updatePriceDisplay() {
-    els.marketPrice.innerText = currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-    calculateUSD(); // Recalculate input value
-}
-
-// --- 3. CUSTOM DROPDOWN LOGIC ---
-function generateDropdown() {
-    els.dropMenu.innerHTML = ''; // Clear
-    ASSETS.forEach(asset => {
-        const div = document.createElement('div');
-        div.className = 'dropdown-item';
-        div.innerHTML = `<img src="${asset.icon}"><span>${asset.name}</span>`;
-        div.onclick = () => selectAsset(asset);
-        els.dropMenu.appendChild(div);
-    });
-}
-
-// Toggle Dropdown
-els.dropBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Stop click from closing immediately
-    const isHidden = els.dropMenu.classList.contains('hidden');
-    
-    if (isHidden) {
-        els.dropMenu.classList.remove('hidden');
-        els.dropArrow.style.transform = 'rotate(180deg)';
+            // UI আপডেট
+            updateUI();
+            fetchStakedData();
+            
+            log("Wallet Connected Successfully", "success");
+        } catch (error) {
+            console.error(error);
+            log("Connection Rejected", "error");
+            document.getElementById('connectBtn').innerText = "CONNECT WALLET";
+        }
     } else {
-        closeDropdown();
+        alert("Please install MetaMask or use Trust Wallet browser!");
+        log("No Wallet Provider Found", "error");
     }
-});
-
-// Close when clicking outside
-document.addEventListener('click', () => closeDropdown());
-
-function closeDropdown() {
-    els.dropMenu.classList.add('hidden');
-    els.dropArrow.style.transform = 'rotate(0deg)';
 }
 
-async function selectAsset(asset) {
-    currentAsset = asset;
-    
-    // Update UI
-    els.selectedIcon.src = asset.icon;
-    els.selectedName.innerText = asset.name;
-    els.activeSymbols.forEach(el => el.innerText = asset.symbol);
-    
-    // Reset Input
-    els.stakeInput.value = '';
-    els.liveUsd.innerText = '0.00';
-    
-    // Fetch new price immediately
-    await fetchLivePrices();
-    
-    closeDropdown();
+// --- ২. স্টেক করা ডাটা ফেচ করা ---
+async function fetchStakedData() {
+    if (!contract || !currentAccount) return;
+    try {
+        const userData = await contract.users(currentAccount);
+        // ১০^১৮ দিয়ে ভাগ করে রিডযোগ্য ফরম্যাটে আনা
+        const stakedAmount = ethers.utils.formatUnits(userData.amount, 18);
+        document.getElementById('stakedBal').innerText = parseFloat(stakedAmount).toFixed(4);
+    } catch (e) {
+        console.error("Fetch Error:", e);
+    }
 }
 
-// --- 4. REAL-TIME CALCULATION ---
-els.stakeInput.addEventListener('input', calculateUSD);
-
-function calculateUSD() {
-    const amount = parseFloat(els.stakeInput.value);
-    if (isNaN(amount) || amount <= 0) {
-        els.liveUsd.innerText = '0.00';
-        return;
-    }
+// --- ৩. স্টেক (Execute Protocol) ফাংশন ---
+async function initiateStake() {
+    if (!currentAccount) return alert("Please connect wallet first!");
     
-    const totalUsd = amount * currentPrice;
-    els.liveUsd.innerText = totalUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const amount = document.getElementById('stakeAmount').value;
+    if (!amount || amount <= 0) return alert("Enter a valid amount!");
+
+    try {
+        const txAmount = ethers.utils.parseUnits(amount.toString(), 18);
+        log("Transaction Pending...", "info");
+        
+        const tx = await contract.stake(txAmount);
+        document.getElementById('executeBtn').innerText = "PROCESSING...";
+        
+        await tx.wait();
+        log("Stake Successful!", "success");
+        document.getElementById('executeBtn').innerText = "EXECUTE PROTOCOL";
+        fetchStakedData();
+    } catch (err) {
+        console.error(err);
+        log("Transaction Failed", "error");
+        document.getElementById('executeBtn').innerText = "EXECUTE PROTOCOL";
+    }
 }
 
-// --- 5. PERCENTAGE BUTTONS ---
-document.querySelectorAll('.perc-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const p = parseFloat(e.target.dataset.p);
-        const val = (userBalance * p).toFixed(4);
-        els.stakeInput.value = val;
-        calculateUSD();
-    });
-});
-
-// --- 6. BACKGROUND ANIMATION ---
-function initParticles() {
-    const canvas = document.getElementById('neuralCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles = [];
-    for(let i=0; i<50; i++) {
-        particles.push({
-            x: Math.random()*canvas.width, 
-            y: Math.random()*canvas.height, 
-            vx: (Math.random()-0.5), 
-            vy: (Math.random()-0.5)
-        });
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#00f2ff';
-        particles.forEach(p => {
-            p.x += p.vx; p.y += p.vy;
-            if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
-            if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-            ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
-        });
-        requestAnimationFrame(animate);
-    }
-    animate();
+// --- হেল্পার ফাংশনস ---
+function updateUI() {
+    const btn = document.getElementById('connectBtn');
+    btn.innerText = currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
+    btn.style.borderColor = "#00f2ff";
 }
+
+function log(msg, type) {
+    const ledger = document.getElementById('ledger');
+    const p = document.createElement('p');
+    p.style.color = type === 'error' ? '#ff4d4d' : '#00f2ff';
+    p.innerText = `> ${msg}`;
+    ledger.prepend(p);
+}
+
+// ইভেন্ট লিসেনার
+document.getElementById('connectBtn').addEventListener('click', connectWallet);
+document.getElementById('executeBtn').addEventListener('click', initiateStake);
